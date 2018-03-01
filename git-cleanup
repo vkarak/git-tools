@@ -2,28 +2,29 @@
 
 GREP="grep --color=never"
 
-usage()
-{
-    echo "$0: {local|remote} [REMOTE]" >&2
-}
-
+progname=$(basename $0)
 mode=$1
 remote=$2
 
+usage()
+{
+    echo "$progname: {local|remote} [REMOTE]" >&2
+}
+
 if [ -z $mode ]; then
-    echo "$0: no mode specified" >&2
+    echo "$progname: no mode specified" >&2
     usage
     exit 1
 fi
 
 if [ $mode != "remote" ] && [ $mode != "local" ]; then
-    echo "$0: unknown mode: $mode" >&2
+    echo "$progname: unknown mode: $mode" >&2
     usage
     exit 1
 fi
 
 if [ $mode == "remote" ] && [ -z $remote ]; then
-    echo "$0: no remote specified" >&2
+    echo "$progname: no remote specified" >&2
     usage
     exit 1
 fi
@@ -31,18 +32,23 @@ fi
 if [ $mode == "local" ]; then
     branches=$(git branch --merged | $GREP -v master | $GREP -v '*')
     if [ -z $branches ]; then
-        echo "$0: no merged local branches found"
+        echo "$progname: no merged local branches found"
         exit 0
     fi
 
     git branch -d $branches
 elif [ $mode == "remote" ]; then
+    if ! git remote prune $remote; then
+        echo "$progname: git prune failed" >&2
+        exit 1
+    fi
+
     branches=$(git branch -r --merged | $GREP $remote/ | \
                $GREP -v master | sed -e "s/$remote\///g")
     if [ -z $branches ]; then
-        echo "$0: no merged remote branches found"
+        echo "$progname: no merged remote branches found"
         exit 0
     fi
 
-    git push $remote --delete
+    git push $remote --delete $branches
 fi

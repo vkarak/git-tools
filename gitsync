@@ -1,22 +1,23 @@
 #!/bin/bash
 
-usage()
-{
-    echo "$0 SRC_REMOTE DST_REMOTE [BRANCH]" >&2
-}
-
+progname=$(basename $0)
 src_remote=$1
 dst_remote=$2
 branch=$3
 
+usage()
+{
+    echo "$progname SRC_REMOTE DST_REMOTE [BRANCH]" >&2
+}
+
 if [ -z $src_remote ]; then
-    echo "$0: too few arguments" >&2
+    echo "$progname: too few arguments" >&2
     usage
     exit 1
 fi
 
 if [ -z $dst_remote ]; then
-    echo "$0: too few arguments" >&2
+    echo "$progname: too few arguments" >&2
     usage
     exit 1
 fi
@@ -27,17 +28,17 @@ fi
 
 curr_branch=$(git rev-parse --abbrev-ref HEAD)
 if [ $curr_branch != $branch ]; then
-    echo "$0: branch mismatch:" \
+    echo "$progname: branch mismatch:" \
          "current branch is $curr_branch but asked to sync $branch" >&2
     usage
     exit 1
 fi
 
 if ! git pull $src_remote $branch; then
-    echo "$0: pull failed" >&2
+    echo "$progname: pull failed" >&2
     exit 1
 fi
 if ! git push $dst_remote $branch; then
-    echo "$0: push failed" >&2
+    echo "$progname: push failed" >&2
     exit 1
 fi
