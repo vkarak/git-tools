@@ -30,13 +30,21 @@ if [ $mode == "remote" ] && [ -z $remote ]; then
 fi
 
 if [ $mode == "local" ]; then
+    echo "[$progname] Deleting merged local branches..."
     branches=$(git branch --merged | $GREP -v master | $GREP -v '*')
-    if [ -z $branches ]; then
-        echo "$progname: no merged local branches found"
-        exit 0
+    if [ -z "$branches" ]; then
+        echo "    No merged local branches found"
+    else
+        # Delete local branches
+        git branch -d $branches
     fi
 
-    git branch -d $branches
+    echo "[$progname] Deleting stale remote tracking branches..."
+    for remote in $(git remote); do
+        echo "    Prunning $remote... "
+        git remote prune $remote
+    done
+
 elif [ $mode == "remote" ]; then
     if ! git remote prune $remote; then
         echo "$progname: git prune failed" >&2
